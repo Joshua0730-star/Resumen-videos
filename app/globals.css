@@ -24,3 +24,28 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+
+.fade-scroll {
+  mask-image: linear-gradient(to bottom,
+      transparent,
+      black 20px,
+      black calc(100% - 20px),
+      transparent);
+  -webkit-mask-image: linear-gradient(to bottom,
+      transparent,
+      black 20px,
+      black calc(100% - 20px),
+      transparent);
+}
+
+.scroll-container {
+  scroll-behavior: smooth;
+}
+
+@media (max-width: 640px) {
+  .action-buttons {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+}
