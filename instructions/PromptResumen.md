@@ -19,8 +19,6 @@ A continuación, te proporciono la transcripción de un video. Analízala en pro
 - Estructura Requerida para el Resumen:
   Por favor, organiza la información usando la siguiente plantilla. Esta estructura es fundamental.
 
---- INICIO DEL RESUMEN ---
-
 Título Sugerido para el Resumen: (Crea un título pegadizo y que refleje el núcleo del video)
 
 1. Resumen Ejecutivo (2-3 párrafos):
@@ -51,4 +49,6 @@ Si el video incluye pasos a seguir, consejos o llamados a la acción, listálos 
 
 Si no es aplicable, puedes omitir esta sección.
 
---- FIN DEL RESUMEN ---
+agrega secciones jerarquicas para una mejor lectura, es decir, que no todo el resumen sea parrafo, sino que donde hay un titulo coloca un h1 , y asi sucesivamente con sus etiquetas respectivas
+
+solo dame el resumen, no me des anotaciones, y no sigas estrictamente la estructura que te doy, es un ejemplo , lo que quiero es mejorar la UX

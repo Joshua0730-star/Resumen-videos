@@ -1,8 +1,13 @@
 // app/api/generate-summary/route.ts
 import { NextResponse } from 'next/server';
-import { DeepSeek } from 'deepseek-ai';
+import OpenAI from 'openai';
+import fs from 'fs';
+import path from 'path';
 
-const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
+// Initialize OpenAI with your API key
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+});
 
 export async function POST(request: Request) {
     try {
@@ -15,14 +20,16 @@ export async function POST(request: Request) {
             );
         }
 
-        const deepseek = new DeepSeek(process.env.DEEPSEEK_API_KEY!);
+        // Read the prompt file
+        const promptPath = path.join(process.cwd(), 'instructions', 'PromptResumen.md');
+        const prompt = fs.readFileSync(promptPath, 'utf8');
 
-        const response = await deepseek.chat.completions.create({
-            model: "deepseek-chat",
+        const response = await openai.chat.completions.create({
+            model: "gpt-4.1-mini",
             messages: [
                 {
                     role: "system",
-                    content: "Eres un asistente que genera resúmenes ejecutivos de transcripciones de videos. Sigue estrictamente el formato solicitado."
+                    content: prompt
                 },
                 {
                     role: "user",
@@ -33,11 +40,17 @@ export async function POST(request: Request) {
             max_tokens: 1000
         });
 
-        return NextResponse.json({ summary: response.choices[0].message.content });
+        return NextResponse.json({
+            summary: response.choices[0].message.content
+        });
     } catch (error: any) {
         console.error('Error generating summary:', error);
         return NextResponse.json(
-            { error: 'Error al generar el resumen', details: error.message },
+            {
+                error: 'Error al generar el resumen',
+                details: error.message,
+                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            },
             { status: 500 }
         );
     }

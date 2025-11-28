@@ -90,12 +90,14 @@ export default function YoutubeInput() {
       });
 
       if (!response.ok) {
-        throw new Error("Error al generar el resumen");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Error al generar el resumen");
       }
 
       const data = await response.json();
       setSummary(data.summary);
     } catch (err: any) {
+      console.error("Error generating summary:", err);
       setSummaryError(err.message || "Ocurrió un error al generar el resumen");
     } finally {
       setIsGeneratingSummary(false);
