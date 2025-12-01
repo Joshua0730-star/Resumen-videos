@@ -12,8 +12,13 @@ import {
   Sparkles,
   Loader,
   Bot,
+  Download,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+
+import ReactMarkdown from "react-markdown";
+import rehypeHighlight from "rehype-highlight";
+import "highlight.js/styles/github.css";
 
 interface TranscriptionResult {
   content: string;
@@ -37,6 +42,13 @@ export default function YoutubeInput() {
     e.preventDefault();
     if (!url) {
       setError("Por favor ingresa una URL de YouTube");
+      return;
+    }
+
+    const youtubeRegex =
+      /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/(watch\?v=|embed\/|v\/|shorts\/|playlist\?list=)?([a-zA-Z0-9_-]{11})(\S*)?$/;
+    if (!youtubeRegex.test(url)) {
+      setError("Por favor ingresa una URL válida de YouTube");
       return;
     }
 
@@ -104,6 +116,18 @@ export default function YoutubeInput() {
     }
   };
 
+  const downloadSummary = () => {
+    if (!summary) return;
+
+    const element = document.createElement("a");
+    const file = new Blob([summary], { type: "text/markdown" });
+    element.href = URL.createObjectURL(file);
+    element.download = `resumen-${new Date().toISOString().split("T")[0]}.md`;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-lg">
       <div className="flex items-center justify-center mb-2">
@@ -131,13 +155,16 @@ export default function YoutubeInput() {
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://www.youtube.com/watch?v=..."
-              className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus-visible:outline-0  transition-all placeholder:text-gray-600/60 text-gray-800"
               disabled={loading}
+              required
+              pattern="^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/(watch\?v=|embed\/|v\/|shorts\/|playlist\?list=)?([a-zA-Z0-9_-]{11})(\S*)?$" // <-- regex para validar que sea una url de youtube
+              title="Por favor ingresa una URL válida de YouTube"
             />
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium flex items-center gap-2  disabled:opacity-70 disabled:cursor-not-allowed focus:scale-105 active:scale-95 transition-all duration-150 cursor-pointer"
             >
               {loading ? (
                 <>
@@ -230,28 +257,40 @@ export default function YoutubeInput() {
       )}
       {transcription && !showRaw && (
         <div className="mt-8 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-6 shadow-inner border border-blue-100">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-semibold text-gray-800 flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
+            <h2 className="text-2xl font-semibold text-gray-800 flex items-center gap-2 mb-2">
               <Sparkles className="text-purple-600" />
-              Resumen Ejecutivo
+              Resumen Detallado
             </h2>
-            <button
-              onClick={generateSummary}
-              disabled={isGeneratingSummary}
-              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium flex items-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-70 disabled:cursor-not-allowed"
-            >
-              {isGeneratingSummary ? (
-                <>
-                  <Loader className="w-4 h-4 animate-spin" />
-                  Generando...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-4 h-4" />
-                  Generar Resumen
-                </>
+            <div className="flex w-full gap-2 sm:flex-row sm:gap-0 mt-3 sm:mt-0">
+              <button
+                onClick={generateSummary}
+                disabled={isGeneratingSummary}
+                className="px-4 py-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium flex items-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer sm:mr-2 text-sm  md:text-base md:px-3.5 md:py-1 md:leading-4.5 w-fit"
+              >
+                {isGeneratingSummary ? (
+                  <>
+                    <Loader className="w-4 h-4 animate-spin" />
+                    Generando...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4" />
+                    Generar Resumen
+                  </>
+                )}
+              </button>
+              {summary && (
+                <button
+                  onClick={downloadSummary}
+                  className="px-4 py-2 border-2 border-blue-600 text-blue-600 rounded-lg font-medium flex items-center gap-2 hover:bg-blue-50 transition-colors cursor-pointer"
+                  title="Descargar resumen"
+                >
+                  <Download className="w-4 h-4" />
+                  <span className="hidden sm:inline">Descargar</span>
+                </button>
               )}
-            </button>
+            </div>
           </div>
 
           {summaryError && (
@@ -263,12 +302,69 @@ export default function YoutubeInput() {
 
           <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
             {summary ? (
-              <div
-                className="prose max-w-none text-gray-700"
-                dangerouslySetInnerHTML={{
-                  __html: summary.replace(/\n/g, "<br />"),
-                }}
-              />
+              <div className="prose max-w-none text-gray-700">
+                <ReactMarkdown
+                  rehypePlugins={[rehypeHighlight]}
+                  components={{
+                    h1: ({ node, ...props }) => (
+                      <h1 className="text-3xl font-bold my-4" {...props} />
+                    ),
+                    h2: ({ node, ...props }) => (
+                      <h2 className="text-2xl font-bold my-3" {...props} />
+                    ),
+                    h3: ({ node, ...props }) => (
+                      <h3 className="text-xl font-semibold my-2" {...props} />
+                    ),
+                    p: ({ node, ...props }) => (
+                      <p className="my-3 leading-relaxed" {...props} />
+                    ),
+                    ul: ({ node, ...props }) => (
+                      <ul
+                        className="list-disc pl-6 my-3 space-y-1"
+                        {...props}
+                      />
+                    ),
+                    ol: ({ node, ...props }) => (
+                      <ol
+                        className="list-decimal pl-6 my-3 space-y-1"
+                        {...props}
+                      />
+                    ),
+                    li: ({ node, ...props }) => (
+                      <li className="my-1" {...props} />
+                    ),
+                    strong: ({ node, ...props }) => (
+                      <strong className="font-semibold" {...props} />
+                    ),
+                    em: ({ node, ...props }) => (
+                      <em className="italic" {...props} />
+                    ),
+                    blockquote: ({ node, ...props }) => (
+                      <blockquote
+                        className="border-l-4 border-blue-500 pl-4 italic my-4 text-gray-600"
+                        {...props}
+                      />
+                    ),
+                    code: ({ node, inline, ...props }) => {
+                      if (inline) {
+                        return (
+                          <code
+                            className="bg-gray-100 px-1.5 py-0.5 rounded text-sm"
+                            {...props}
+                          />
+                        );
+                      }
+                      return (
+                        <pre className="bg-gray-800 text-gray-100 p-4 rounded-md overflow-x-auto my-4 text-sm">
+                          <code {...props} />
+                        </pre>
+                      );
+                    },
+                  }}
+                >
+                  {summary}
+                </ReactMarkdown>
+              </div>
             ) : (
               <div className="text-center py-8 text-gray-500">
                 <Bot className="w-12 h-12 mx-auto mb-4 text-gray-300" />
