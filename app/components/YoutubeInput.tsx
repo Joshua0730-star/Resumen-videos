@@ -14,11 +14,15 @@ import {
   Bot,
   Download,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState, type ComponentPropsWithoutRef } from "react";
 
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, { type Components } from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github.css";
+
+type CodeProps = ComponentPropsWithoutRef<"code"> & {
+  inline?: boolean;
+};
 
 interface TranscriptionResult {
   content: string;
@@ -78,7 +82,8 @@ export default function YoutubeInput() {
     if (!transcription?.content) return;
     navigator.clipboard.writeText(transcription.content);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    const timeOutId = setTimeout(() => setCopied(false), 2000);
+    clearTimeout(timeOutId);
   };
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -128,6 +133,48 @@ export default function YoutubeInput() {
     document.body.removeChild(element);
   };
 
+  const CodeBlock = ({ inline, ...props }: CodeProps) => {
+    if (inline) {
+      return (
+        <code
+          className="bg-gray-100 px-1.5 py-0.5 rounded text-sm"
+          {...props}
+        />
+      );
+    }
+
+    return (
+      <pre className="bg-gray-800 text-gray-100 p-4 rounded-md overflow-x-auto my-4 text-sm">
+        <code {...props} />
+      </pre>
+    );
+  };
+
+  const markdownComponents: Components = {
+    h1: ({ ...props }) => <h1 className="text-3xl font-bold my-4" {...props} />,
+    h2: ({ ...props }) => <h2 className="text-2xl font-bold my-3" {...props} />,
+    h3: ({ ...props }) => (
+      <h3 className="text-xl font-semibold my-2" {...props} />
+    ),
+    p: ({ ...props }) => <p className="my-3 leading-relaxed" {...props} />,
+    ul: ({ ...props }) => (
+      <ul className="list-disc pl-6 my-3 space-y-1" {...props} />
+    ),
+    ol: ({ ...props }) => (
+      <ol className="list-decimal pl-6 my-3 space-y-1" {...props} />
+    ),
+    li: ({ ...props }) => <li className="my-1" {...props} />,
+    strong: ({ ...props }) => <strong className="font-semibold" {...props} />,
+    em: ({ ...props }) => <em className="italic" {...props} />,
+    blockquote: ({ ...props }) => (
+      <blockquote
+        className="border-l-4 border-blue-500 pl-4 italic my-4 text-gray-600"
+        {...props}
+      />
+    ),
+    code: CodeBlock,
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-lg">
       <div className="flex items-center justify-center mb-2">
@@ -158,7 +205,7 @@ export default function YoutubeInput() {
               className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus-visible:outline-0  transition-all placeholder:text-gray-600/60 text-gray-800"
               disabled={loading}
               required
-              pattern="^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/(watch\?v=|embed\/|v\/|shorts\/|playlist\?list=)?([a-zA-Z0-9_-]{11})(\S*)?$" // <-- regex para validar que sea una url de youtube
+              pattern="^(https?:\\/\\/)?(www\\.)?(youtube\\.com|youtu\\.be)\\/(watch\\?v=|embed\\/|v\\/|shorts\\/|playlist\\?list=)?([a-zA-Z0-9_-]{11})(\\S*)?$" // <-- regex para validar que sea una url de youtube
               title="Por favor ingresa una URL válida de YouTube"
             />
             <button
@@ -266,7 +313,7 @@ export default function YoutubeInput() {
               <button
                 onClick={generateSummary}
                 disabled={isGeneratingSummary}
-                className="px-4 py-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium flex items-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer sm:mr-2 text-sm  md:text-base md:px-3.5 md:py-1 md:leading-4.5 w-fit"
+                className="px-4 py-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium flex items-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer sm:mr-2 text-sm  md:text-base md:px-3.5 md:py-1 md:leading-4.5 w-fit lg:px-5 lg:py-2"
               >
                 {isGeneratingSummary ? (
                   <>
@@ -305,62 +352,7 @@ export default function YoutubeInput() {
               <div className="prose max-w-none text-gray-700">
                 <ReactMarkdown
                   rehypePlugins={[rehypeHighlight]}
-                  components={{
-                    h1: ({ node, ...props }) => (
-                      <h1 className="text-3xl font-bold my-4" {...props} />
-                    ),
-                    h2: ({ node, ...props }) => (
-                      <h2 className="text-2xl font-bold my-3" {...props} />
-                    ),
-                    h3: ({ node, ...props }) => (
-                      <h3 className="text-xl font-semibold my-2" {...props} />
-                    ),
-                    p: ({ node, ...props }) => (
-                      <p className="my-3 leading-relaxed" {...props} />
-                    ),
-                    ul: ({ node, ...props }) => (
-                      <ul
-                        className="list-disc pl-6 my-3 space-y-1"
-                        {...props}
-                      />
-                    ),
-                    ol: ({ node, ...props }) => (
-                      <ol
-                        className="list-decimal pl-6 my-3 space-y-1"
-                        {...props}
-                      />
-                    ),
-                    li: ({ node, ...props }) => (
-                      <li className="my-1" {...props} />
-                    ),
-                    strong: ({ node, ...props }) => (
-                      <strong className="font-semibold" {...props} />
-                    ),
-                    em: ({ node, ...props }) => (
-                      <em className="italic" {...props} />
-                    ),
-                    blockquote: ({ node, ...props }) => (
-                      <blockquote
-                        className="border-l-4 border-blue-500 pl-4 italic my-4 text-gray-600"
-                        {...props}
-                      />
-                    ),
-                    code: ({ node, inline, ...props }) => {
-                      if (inline) {
-                        return (
-                          <code
-                            className="bg-gray-100 px-1.5 py-0.5 rounded text-sm"
-                            {...props}
-                          />
-                        );
-                      }
-                      return (
-                        <pre className="bg-gray-800 text-gray-100 p-4 rounded-md overflow-x-auto my-4 text-sm">
-                          <code {...props} />
-                        </pre>
-                      );
-                    },
-                  }}
+                  components={markdownComponents}
                 >
                   {summary}
                 </ReactMarkdown>
@@ -369,8 +361,8 @@ export default function YoutubeInput() {
               <div className="text-center py-8 text-gray-500">
                 <Bot className="w-12 h-12 mx-auto mb-4 text-gray-300" />
                 <p>
-                  Haz clic en "Generar Resumen" para obtener un análisis
-                  ejecutivo del video.
+                  Haz clic en &nbsp; Generar Resumen &nbsp; para obtener un
+                  análisis ejecutivo del video.
                 </p>
               </div>
             )}
