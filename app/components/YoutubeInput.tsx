@@ -179,7 +179,7 @@ export default function YoutubeInput() {
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-lg">
       <div className="flex items-center justify-center mb-2">
         <PlayCircle className="w-8 h-8 mr-2  text-blue-600" />
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent text-center ">
           Resumidor de Videos
         </h1>
       </div>
