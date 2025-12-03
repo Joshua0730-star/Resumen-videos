@@ -195,7 +195,7 @@ export default function YoutubeInput() {
           >
             URL del video de YouTube
           </label>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-col sm:flex-row ">
             <input
               type="text"
               id="youtube-url"
@@ -211,7 +211,7 @@ export default function YoutubeInput() {
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium flex items-center gap-2  disabled:opacity-70 disabled:cursor-not-allowed focus:scale-105 active:scale-95 transition-all duration-150 cursor-pointer"
+              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium flex items-center justify-center gap-2  disabled:opacity-70 disabled:cursor-not-allowed focus:scale-105 active:scale-95 transition-all duration-150 cursor-pointer "
             >
               {loading ? (
                 <>
